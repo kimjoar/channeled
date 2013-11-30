@@ -2,24 +2,24 @@ describe('channeled', function() {
 
     it('calls onopen when socket is opened', function() {
         var socket = {};
-        var cSocket = channeled(socket);
+        var channels = channeled(socket);
 
-        cSocket.onopen = sinon.spy();
+        channels.onopen = sinon.spy();
 
         socket.onopen();
 
-        expect(cSocket.onopen.callCount).toBe(1);
+        expect(channels.onopen.callCount).toBe(1);
     });
 
     it('calls onerror when socket fails', function() {
         var socket = {};
-        var cSocket = channeled(socket);
+        var channels = channeled(socket);
 
-        cSocket.onerror = sinon.spy();
+        channels.onerror = sinon.spy();
 
         socket.onerror();
 
-        expect(cSocket.onerror.callCount).toBe(1);
+        expect(channels.onerror.callCount).toBe(1);
     });
 
     it('sends data on an event', function() {
@@ -27,12 +27,12 @@ describe('channeled', function() {
             send: sinon.spy()
         };
 
-        var cSocket = channeled(socket);
+        var channels = channeled(socket);
         var data = { test: 'something' };
 
-        cSocket.send('test', data);
+        channels.send('test', data);
 
-        var expected = { event: 'test', data: { test: 'something' } };
+        var expected = JSON.stringify({ event: 'test', data: { test: 'something' } });
 
         expect(socket.send.callCount).toBe(1);
         expect(socket.send.firstCall.args[0]).toEqual(expected);
@@ -45,11 +45,11 @@ describe('channeled', function() {
                 send: sinon.spy()
             };
 
-            var cSocket = channeled(socket);
+            var channels = channeled(socket);
 
-            cSocket.subscribe('channel');
+            channels.subscribe('channel');
 
-            var expected = { event: 'subscribe', data: { channel: 'channel' } };
+            var expected = JSON.stringify({ event: 'subscribe', data: { channel: 'channel' } });
 
             expect(socket.send.lastCall.args[0]).toEqual(expected);
         });
@@ -59,13 +59,29 @@ describe('channeled', function() {
                 send: sinon.spy()
             };
 
-            var cSocket = channeled(socket);
+            var channels = channeled(socket);
 
-            var ch = cSocket.subscribe('channel');
+            var channel = channels.subscribe('channel');
 
-            ch.close();
+            channel.close();
 
-            var expected = { event: 'unsubscribe', data: { channel: 'channel' } };
+            var expected = JSON.stringify({ event: 'unsubscribe', data: { channel: 'channel' } });
+
+            expect(socket.send.lastCall.args[0]).toEqual(expected);
+        });
+
+        it('can send messages on the channel', function() {
+            var socket = {
+                send: sinon.spy()
+            };
+
+            var channels = channeled(socket);
+
+            var channel = channels.subscribe('channel');
+
+            channel.send("test", { some: 'data' });
+
+            var expected = JSON.stringify({ channel: 'channel', event: 'test', data: { some: 'data' }});
 
             expect(socket.send.lastCall.args[0]).toEqual(expected);
         });

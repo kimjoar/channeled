@@ -33,7 +33,7 @@
         };
 
         var send = function(event, data) {
-            socket.send({ event: event, data: data });
+            socket.send(JSON.stringify({ event: event, data: data }));
         };
 
         var api = {
@@ -46,7 +46,7 @@
 
                 return {
                     send: function(event, data) {
-                        socket.send({ channel: channel, event: event, data: data });
+                        socket.send(JSON.stringify({ channel: channel, event: event, data: data }));
                     },
 
                     on: function(event, callback) {
