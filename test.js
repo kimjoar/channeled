@@ -86,6 +86,42 @@ describe('channeled', function() {
             expect(socket.send.lastCall.args[0]).toEqual(expected);
         });
 
+        it("receives event when listening on channel with matching channel and event names", function() {
+            var socket = {
+                send: function() {}
+            };
+
+            var channels = channeled(socket);
+
+            var channel = channels.subscribe('channel');
+
+            var spy = sinon.spy();
+            channel.on('test', spy);
+
+            var data = { channel: 'channel', event: 'test', data: { some: 'data' }};
+            socket.onmessage({ data: JSON.stringify(data) });
+
+            expect(spy.callCount).toEqual(1);
+        });
+
+        it("does not receive event when listening on channel with non-matching channel and event names", function() {
+            var socket = {
+                send: function() {}
+            };
+
+            var channels = channeled(socket);
+
+            var channel = channels.subscribe('channel');
+
+            var spy = sinon.spy();
+            channel.on('some-event', spy);
+
+            var data = { channel: 'other-channel', event: 'other-event', data: { some: 'data' }};
+            socket.onmessage({ data: JSON.stringify(data) });
+
+            expect(spy.callCount).toEqual(0);
+        });
+
     });
 
 });

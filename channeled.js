@@ -24,7 +24,7 @@
         };
 
         socket.onmessage = function(e) {
-            var json = e.data;
+            var json = JSON.parse(e.data);
             events.emit(json.channel, json.event, json.data);
         };
 
